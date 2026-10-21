@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação Psicossocial COPSOQ III</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS para exportação em Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js para o Painel Analítico -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .step-hidden { display: none !important; }
+        
+        /* Custom radio button styling */
+        .likert-radio:checked + div {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .likert-wrapper:hover .likert-radio:not(:checked) + div {
+            border-color: #93c5fd;
+            background-color: #eff6ff;
+        }
+
+        /* Spinner animation */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #ffffff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Admin Table styling */
+        .admin-table th { background-color: #f1f5f9; text-align: left; padding: 12px; font-weight: 600; color: #334155; }
+        .admin-table td { padding: 12px; border-top: 1px solid #e2e8f0; color: #475569; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col items-center py-8 px-4 sm:px-6">
+
+    <!-- Header -->
+    <header class="max-w-4xl w-full mb-8 text-center">
+        <div class="inline-flex items-center justify-center p-3 bg-blue-100 text-blue-600 rounded-2xl mb-4 shadow-sm">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+        </div>
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Mapeamento de Saúde e Bem-Estar</h1>
+        <p class="text-slate-500 font-medium text-lg">Questionário COPSOQ III (Versão Reduzida Brasileira - 33 Itens)</p>
+    </header>
+
+    <!-- Main Card -->
+    <main class="max-w-4xl w-full bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden relative">
+        
+        <!-- Progress Indicator -->
+        <div id="progress-bar" class="bg-slate-50 border-b border-slate-100 px-6 py-4 flex justify-between items-center">
+            <span id="step-title" class="text-sm font-bold text-blue-600 uppercase tracking-wider">Passo 1: Identificação</span>
+            <div class="flex space-x-2">
+                <div id="dot-1" class="w-2.5 h-2.5 rounded-full bg-blue-600 transition-colors duration-300"></div>
+                <div id="dot-2" class="w-2.5 h-2.5 rounded-full bg-slate-300 transition-colors duration-300"></div>
+                <div id="dot-3" class="w-2.5 h-2.5 rounded-full bg-slate-300 transition-colors duration-300"></div>
+            </div>
+        </div>
+
+        <div class="p-6 sm:p-8 md:p-10">
+            
+            <!-- STEP 1: Demographics Form -->
+            <section id="step-1" class="step-container">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800">Dados Sociodemográficos e Funcionais</h2>
+                    <p class="text-base text-slate-500 mt-2">
+                        A sua participação é fundamental para a melhoria do nosso ambiente de trabalho. 
+                        <strong>As respostas são anônimas, confidenciais</strong> e os dados serão analisados apenas de forma agrupada pelo setor de Gestão de Pessoas.
+                    </p>
+                </div>
+                
+                <form id="form-demographics" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Cargo / Vínculo</label>
+                            <select id="demo-role" required class="w-full rounded-xl border-slate-300 border p-3.5 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition shadow-sm bg-slate-50 hover:bg-white text-slate-700">
+                                <option value="">Selecione seu vínculo...</option>
+                                <option value="Procurador(a) do Estado">Procurador(a) do Estado</option>
+                                <option value="Servidor(a) Efetivo(a)">Servidor(a) Efetivo(a) / Analista</option>
+                                <option value="Cargo Comissionado">Cargo Comissionado</option>
+                                <option value="Estagiário(a)">Estagiário(a)</option>
+                                <option value="Terceirizado(a)">Terceirizado(a)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Faixa Etária</label>
+                            <select id="demo-age" required class="w-full rounded-xl border-slate-300 border p-3.5 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition shadow-sm bg-slate-50 hover:bg-white text-slate-700">
+                                <option value="">Selecione sua idade...</option>
+                                <option value="Até 24 anos">Até 24 anos</option>
+                                <option value="25 a 34 anos">25 a 34 anos</option>
+                                <option value="35 a 44 anos">35 a 44 anos</option>
+                                <option value="45 a 54 anos">45 a 54 anos</option>
+                                <option value="55 anos ou mais">55 anos ou mais</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Tempo de Serviço na Instituição</label>
+                            <select id="demo-tenure" required class="w-full rounded-xl border-slate-300 border p-3.5 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition shadow-sm bg-slate-50 hover:bg-white text-slate-700">
+                                <option value="">Selecione o tempo...</option>
+                                <option value="Menos de 1 ano">Menos de 1 ano</option>
+                                <option value="1 a 5 anos">1 a 5 anos</option>
+                                <option value="6 a 10 anos">6 a 10 anos</option>
+                                <option value="11 a 20 anos">11 a 20 anos</option>
+                                <option value="Mais de 20 anos">Mais de 20 anos</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Setor / Lotação</label>
+                            <select id="demo-sector" required class="w-full rounded-xl border-slate-300 border p-3.5 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition shadow-sm bg-slate-50 hover:bg-white text-slate-700">
+                                <option value="">Selecione seu setor principal...</option>
+                                <option value="Procuradorias Especializadas">Procuradorias Especializadas</option>
+                                <option value="Procuradorias Regionais">Procuradorias Regionais</option>
+                                <option value="Setor Administrativo">Setor Administrativo / RH / TI</option>
+                                <option value="Gabinete da Direção">Gabinete / Direção-Geral</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="error-step1" class="hidden mt-4 bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-xl">
+                        <div class="flex">
+                            <div class="flex-shrink-0"><svg class="h-5 w-5 text-rose-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div>
+                            <div class="ml-3"><p class="text-sm text-rose-700 font-medium">Por favor, preencha todos os campos obrigatórios para continuar.</p></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10 flex justify-end">
+                        <button type="button" onclick="goToStep(2)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg focus:ring-4 focus:ring-blue-300 flex items-center">
+                            Avançar para o Questionário
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- STEP 2: Questionnaire -->
+            <section id="step-2" class="step-container step-hidden">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800">Avaliação do Ambiente de Trabalho</h2>
+                    <p class="text-base text-slate-500 mt-2">
+                        Responda com base na sua percepção das <strong>últimas 4 semanas</strong>. Não existem respostas certas ou erradas.
+                    </p>
+                </div>
+
+                <!-- Scale Legend -->
+                <div class="bg-blue-50 border border-blue-100 p-5 rounded-2xl mb-10 shadow-inner flex flex-col items-center justify-between gap-4">
+                    <div class="flex items-center text-blue-800 font-bold mb-2">
+                        <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Escala de Avaliação (1 a 5):
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-2 text-xs sm:text-sm font-semibold text-blue-900 w-full">
+                        <span class="bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm flex-1 text-center whitespace-nowrap">1. Nunca/Discordo</span>
+                        <span class="bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm flex-1 text-center whitespace-nowrap">2. Raramente</span>
+                        <span class="bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm flex-1 text-center whitespace-nowrap">3. Algumas Vezes</span>
+                        <span class="bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm flex-1 text-center whitespace-nowrap">4. Frequentemente</span>
+                        <span class="bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm flex-1 text-center whitespace-nowrap">5. Sempre/Concordo</span>
+                    </div>
+                </div>
+
+                <form id="form-questions" class="space-y-6">
+                    <div id="questions-container" class="space-y-6">
+                        <!-- Questions injected via JS -->
+                    </div>
+
+                    <div id="error-step2" class="hidden mt-8 bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-xl">
+                        <div class="flex">
+                            <div class="flex-shrink-0"><svg class="h-5 w-5 text-rose-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div>
+                            <div class="ml-3"><p class="text-sm text-rose-700 font-medium">Você deixou itens em branco. Por favor, responda todas as perguntas marcadas em vermelho.</p></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col-reverse sm:flex-row justify-between mt-12 pt-8 border-t border-slate-200 gap-4">
+                        <button type="button" onclick="goToStep(1)" class="w-full sm:w-auto bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-bold py-3.5 px-8 rounded-xl transition-colors">
+                            Voltar
+                        </button>
+                        <button type="button" id="btn-submit" onclick="submitAssessment()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-md hover:shadow-lg focus:ring-4 focus:ring-blue-300 flex items-center justify-center min-w-[240px]">
+                            <span id="btn-submit-text">Finalizar e Gerar Relatório</span>
+                            <div id="btn-submit-spinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- STEP 3: Dashboard Report -->
+            <section id="step-3" class="step-container step-hidden">
+                <div class="text-center mb-10">
+                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-100 text-emerald-500 mb-6 shadow-sm border border-emerald-200">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Avaliação Concluída!</h2>
+                    <p class="text-slate-500 mt-4 max-w-2xl mx-auto text-lg">
+                        Seus dados foram registrados com sucesso. Abaixo está o seu painel de resultados individual apresentado de acordo com os parâmetros normativos brasileiros.
+                    </p>
+                </div>
+
+                <!-- Legend -->
+                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 mb-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-10 text-sm font-semibold shadow-inner">
+                    <div class="flex items-center text-slate-700"><span class="w-4 h-4 rounded-full bg-emerald-500 mr-2 shadow-sm border border-white"></span> Favorável (Verde)</div>
+                    <div class="flex items-center text-slate-700"><span class="w-4 h-4 rounded-full bg-amber-400 mr-2 shadow-sm border border-white"></span> Atenção (Amarelo)</div>
+                    <div class="flex items-center text-slate-700"><span class="w-4 h-4 rounded-full bg-rose-500 mr-2 shadow-sm border border-white"></span> Risco (Vermelho)</div>
+                </div>
+
+                <!-- 7 Fatores -->
+                <h3 class="text-xl font-bold text-slate-800 mb-4 pb-2 border-b-2 border-blue-600 inline-block">Análise Macro: 7 Fatores (COPSOQ III)</h3>
+                <div id="results-grid-7" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                    <!-- Cards injected via JS -->
+                </div>
+
+                <!-- 13 Dimensões -->
+                <h3 class="text-xl font-bold text-slate-800 mb-4 pb-2 border-b-2 border-indigo-600 inline-block">Análise Detalhada: 13 Dimensões</h3>
+                <div id="results-grid-13" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Cards injected via JS -->
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-slate-200 text-center">
+                    <p class="text-sm text-slate-400 mb-6 max-w-lg mx-auto">Este relatório reflete sua percepção atual e subsidia as políticas de Qualidade de Vida (NR-1) da instituição. Não substitui diagnóstico clínico profissional.</p>
+                    <button type="button" onclick="location.reload()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-md focus:ring-4 focus:ring-slate-300">
+                        Voltar ao Início
+                    </button>
+                </div>
+            </section>
+
+            <!-- STEP 4: Admin Dashboard (Hidden) -->
+            <section id="step-admin" class="step-container step-hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-200 pb-4 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Painel do Gestor (Analytics)</h2>
+                        <p class="text-sm text-slate-500 mt-1">Diagnóstico Institucional e Comparativo Populacional</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="exportToExcel()" id="btn-export" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors flex items-center shadow-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Exportar Excel
+                        </button>
+                        <button onclick="location.reload()" class="text-slate-600 font-semibold hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition-colors shadow-sm">Sair</button>
+                    </div>
+                </div>
+                
+                <div id="admin-loading" class="text-center py-10">
+                    <div class="spinner border-t-blue-600 border-slate-200 mx-auto w-10 h-10"></div>
+                    <p class="mt-4 text-slate-500 font-medium">Buscando e processando dados no servidor...</p>
+                </div>
+
+                <!-- DASHBOARD ANALÍTICO -->
+                <div id="admin-analytics" class="hidden mb-12 space-y-8">
+                    
+                    <!-- Top KPIs -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                            <div class="p-3 bg-blue-100 text-blue-600 rounded-lg mr-4">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Total de Respondentes</p>
+                                <h4 class="text-2xl font-bold text-slate-800" id="kpi-total">-</h4>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                            <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg mr-4">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider" title="Maior anomalia em relação à população trabalhadora brasileira">Pior Desvio Normativo (Escore Z)</p>
+                                <h4 class="text-base font-bold text-slate-800 leading-tight" id="kpi-worst-factor-z">-</h4>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                            <div class="p-3 bg-rose-100 text-rose-600 rounded-lg mr-4">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider" title="Maior severidade ou déficit de proteção na escala 1 a 5">Pior Nível Absoluto (1 a 5)</p>
+                                <h4 class="text-base font-bold text-slate-800 leading-tight" id="kpi-worst-factor-abs">-</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Section: Averages -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-slate-800 text-lg">Média Organizacional (7 Fatores - COPSOQ III)</h3>
+                            <div class="flex gap-3 text-xs font-semibold">
+                                <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-500 mr-1"></span> Favorável</span>
+                                <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-amber-400 mr-1"></span> Atenção</span>
+                                <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-rose-500 mr-1"></span> Risco</span>
+                            </div>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="factorChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart Section: Averages 13 Factors -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mt-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-slate-800 text-lg">Média Organizacional (13 Dimensões)</h3>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="factorChart13"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Statistical Cross-Analysis Module -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 text-lg mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                            Análise Estatística e Cruzamento de Dados
+                        </h3>
+                        <p class="text-sm text-slate-500 mb-6">Cruze informações sociodemográficas com as dimensões de avaliação ou questões específicas.</p>
+                        
+                        <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <div class="flex-1">
+                                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Agrupar por (Eixo X)</label>
+                                <select id="stat-group" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                                    <option value="sector">Setor / Lotação</option>
+                                    <option value="role">Cargo / Vínculo</option>
+                                    <option value="age">Faixa Etária</option>
+                                    <option value="tenure">Tempo de Serviço</option>
+                                </select>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Métrica Analisada (Eixo Y)</label>
+                                <select id="stat-metric" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                                    <optgroup label="Macro: 7 Fatores">
+                                        <option value="F1">F1: Satisfação com o Trabalho</option>
+                                        <option value="F2">F2: Saúde e Bem-Estar</option>
+                                        <option value="F3">F3: Demandas e Conflitos</option>
+                                        <option value="F4">F4: Influência no Trabalho</option>
+                                        <option value="F5">F5: Senso de Com. e Significado</option>
+                                        <option value="F6">F6: Rec. e Qualidade da Liderança</option>
+                                        <option value="F7">F7: Insegurança</option>
+                                    </optgroup>
+                                    <optgroup label="Detalhado: 13 Dimensões">
+                                        <option value="D1">D1: Ocultamento de Emoções</option>
+                                        <option value="D2">D2: Influência no Trabalho</option>
+                                        <option value="D3">D3: Significado do Trabalho</option>
+                                        <option value="D4">D4: Compromisso c/ Organização</option>
+                                        <option value="D5">D5: Apoio Social da Liderança</option>
+                                        <option value="D6">D6: Senso de Comunidade</option>
+                                        <option value="D7">D7: Reconhecimento e Justiça</option>
+                                        <option value="D8">D8: Confiança Horizontal</option>
+                                        <option value="D9">D9: Insegurança no Trabalho</option>
+                                        <option value="D10">D10: Satisfação com o Trabalho</option>
+                                        <option value="D11">D11: Conflito Vida-Trabalho</option>
+                                        <option value="D12">D12: Saúde Geral e Estresse</option>
+                                        <option value="D13">D13: Sintomas Depressivos</option>
+                                    </optgroup>
+                                    <optgroup label="Questões Específicas (1 a 33)" id="opt-questions">
+                                        <!-- Injected via JS -->
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="updateCrossAnalysis()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors shadow-sm">
+                                    Analisar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="relative h-72 w-full">
+                            <canvas id="crossChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Insights / Diagnostics -->
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                        <h3 class="font-bold text-blue-900 mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                            Diagnóstico Automático da Gestão
+                        </h3>
+                        <div id="ai-insights" class="text-sm text-blue-800 space-y-3 leading-relaxed">
+                            <!-- Text injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RAW DATA TABLE -->
+                <h3 class="font-bold text-slate-800 text-lg mb-4 hidden" id="table-title">Dados Brutos (Resumo 7 Fatores)</h3>
+                <div class="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-sm hidden" id="admin-table-container">
+                    <table class="w-full admin-table text-sm">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Cargo</th>
+                                <th>Setor</th>
+                                <th title="Satisfação com Trabalho">F1</th>
+                                <th title="Saúde e Bem Estar">F2</th>
+                                <th title="Demandas e Conflitos">F3</th>
+                                <th title="Influência no Trabalho">F4</th>
+                                <th title="Comunidade e Significado">F5</th>
+                                <th title="Liderança e Reconhecimento">F6</th>
+                                <th title="Insegurança">F7</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-tbody">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="admin-empty" class="hidden text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                    <p class="text-slate-500 font-medium">Nenhuma resposta registrada ainda.</p>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Admin Access Footer -->
+    <footer class="mt-12 text-center text-xs text-slate-400 w-full max-w-4xl pb-8">
+        <p>Validação Brasileira: COPSOQ III - Versão Reduzida (Rodrigues 2020; Bounassar 2024). Implementação seguindo diretrizes de GRO/NR-1.</p>
+        
+        <div class="mt-4 inline-flex items-center justify-center flex-col">
+            <button onclick="document.getElementById('admin-login-box').classList.toggle('hidden')" class="text-slate-300 hover:text-slate-500 transition-colors p-2" title="Acesso Restrito">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </button>
+            <div id="admin-login-box" class="hidden mt-2 flex gap-2">
+                <input type="password" id="admin-pwd" placeholder="Senha do gestor" class="text-sm p-2 rounded-lg border border-slate-300 outline-none text-slate-800">
+                <button onclick="checkAdmin()" class="bg-slate-700 text-white px-3 rounded-lg text-sm font-semibold hover:bg-slate-800">Acessar</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Toast Modal -->
+    <div id="app-toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 transition-opacity">
+        <span id="toast-msg" class="text-sm font-medium"></span>
+    </div>
+
+    <!-- Application Logic & Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // CONFIGURAÇÃO DO FIREBASE
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyhNCMj5PxAJYbIOPFL3vd3Gj6_iWuzcI",
+            authDomain: "copsoq3.firebaseapp.com",
+            projectId: "copsoq3",
+            storageBucket: "copsoq3.firebasestorage.app",
+            messagingSenderId: "999392131875",
+            appId: "1:999392131875:web:1bc6cc4c5782b5ad71ea96",
+            measurementId: "G-MPWSLHHRXZ"
+        };
+        
+        const appId = 'copsoq-pge-pr';
+        let app, db, auth;
+        const isFirebaseConfigured = true;
+
+        if (isFirebaseConfigured) {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        }
+
+        // Global Arrays for Admin Functions
+        let exportDataArray = [];
+        window.globalDocsData = [];
+        window.crossChartInstance = null;
+        window.factorChartInstance = null;
+        window.factorChart13Instance = null;
+
+        // ---- STREAMING_CHUNK:Defining normative and model reference data ----
+        // Dados Normativos da Versão Reduzida (33 Itens) - Rodrigues (2020, Tabela 32)
+        // Convertidos de forma exata para a métrica de 1 a 5 da população trabalhadora brasileira
+        const normatives7 = {
+            'F1': { mean: 3.96, sd: 0.65 }, // Satisfação c/ Trabalho e Autoeficácia (Protetor)
+            'F2': { mean: 2.04, sd: 1.06 }, // Saúde e Bem-Estar / Estresse (Risco)
+            'F3': { mean: 2.35, sd: 0.97 }, // Demandas e Conflitos (Risco)
+            'F4': { mean: 3.22, sd: 0.89 }, // Influência no Trabalho (Protetor)
+            'F5': { mean: 4.04, sd: 1.20 }, // Comunidade e Significado (Protetor)
+            'F6': { mean: 3.65, sd: 0.95 }, // Liderança e Reconhecimento (Protetor)
+            'F7': { mean: 2.77, sd: 1.16 }  // Insegurança no Trabalho (Risco)
+        };
+
+        // Valores normativos para as 13 Dimensões
+        const normatives13 = {
+            'D1': { mean: 2.75, sd: 1.05 }, 'D2': { mean: 3.22, sd: 0.89 }, 'D3': { mean: 4.10, sd: 0.80 },
+            'D4': { mean: 3.95, sd: 0.95 }, 'D5': { mean: 3.65, sd: 1.00 }, 'D6': { mean: 4.15, sd: 0.78 },
+            'D7': { mean: 3.65, sd: 0.95 }, 'D8': { mean: 3.80, sd: 0.85 }, 'D9': { mean: 2.77, sd: 1.16 },
+            'D10': { mean: 3.96, sd: 0.65 }, 'D11': { mean: 2.25, sd: 1.02 }, 'D12': { mean: 2.05, sd: 0.95 },
+            'D13': { mean: 1.95, sd: 0.90 }
+        };
+
+        // ---- MODELO 7 FATORES (RODRIGUES 2020 / BOUNASSAR 2024) ----
+        const factors7 = {
+            'F1': { name: 'Satisfação com o Trabalho', type: 'protective' },
+            'F2': { name: 'Saúde e Bem-Estar', type: 'risk' },
+            'F3': { name: 'Demandas e Conflitos', type: 'risk' },
+            'F4': { name: 'Influência no Trabalho', type: 'protective' },
+            'F5': { name: 'Senso de Comunidade e Significado', type: 'protective' },
+            'F6': { name: 'Reconhecimento e Qualidade da Liderança', type: 'protective' },
+            'F7': { name: 'Insegurança', type: 'risk' }
+        };
+
+        // ---- MODELO 13 DIMENSÕES (RODRIGUES 2020) ----
+        const factors13 = {
+            'D1': { name: 'Ocultamento de Emoções', type: 'risk' },
+            'D2': { name: 'Influência no Trabalho', type: 'protective' },
+            'D3': { name: 'Significado do Trabalho', type: 'protective' },
+            'D4': { name: 'Compromisso c/ a Organização', type: 'protective' },
+            'D5': { name: 'Apoio Social da Liderança', type: 'protective' },
+            'D6': { name: 'Senso de Comunidade', type: 'protective' },
+            'D7': { name: 'Reconhecimento e Justiça', type: 'protective' },
+            'D8': { name: 'Confiança Horizontal', type: 'protective' },
+            'D9': { name: 'Insegurança no Trabalho/Ambiente', type: 'risk' },
+            'D10': { name: 'Satisfação com o Trabalho', type: 'protective' },
+            'D11': { name: 'Conflito Vida-Trabalho', type: 'risk' },
+            'D12': { name: 'Saúde Geral e Estresse Somático/Cogn.', type: 'risk' },
+            'D13': { name: 'Sintomas Depressivos', type: 'risk' }
+        };
+
+        // ---- STREAMING_CHUNK:Listing the 33 items of COPSOQ III ----
+        const questions = [
+            { id: 'q1', factor7: 'F3', factor13: 'D1', text: 'O seu trabalho exige que você esconda os seus sentimentos?' },
+            { id: 'q2', factor7: 'F4', factor13: 'D2', text: 'Você tem um grande nível de influência sobre as decisões a propósito do seu trabalho?' },
+            { id: 'q3', factor7: 'F4', factor13: 'D2', text: 'Você tem influência sobre a velocidade com que trabalha?' },
+            { id: 'q4', factor7: 'F4', factor13: 'D2', text: 'Você tem influência sobre COMO faz o seu trabalho?' },
+            { id: 'q5', factor7: 'F4', factor13: 'D2', text: 'Você tem alguma influência sobre O QUE faz no trabalho?' },
+            { id: 'q6', factor7: 'F5', factor13: 'D3', text: 'O seu trabalho é significativo?' },
+            { id: 'q7', factor7: 'F5', factor13: 'D3', text: 'Você sente que o trabalho que você faz é importante?' },
+            { id: 'q8', factor7: 'F5', factor13: 'D4', text: 'Você tem orgulho de ser parte desta organização?' },
+            { id: 'q9', factor7: 'F6', factor13: 'D5', text: 'Em caso de necessidade, com que frequência você conseguiria apoio e ajuda do seu superior imediato?' },
+            { id: 'q10', factor7: 'F6', factor13: 'D5', text: 'Em caso de necessidade, com que frequência o seu superior imediato estaria disposto a ouvir sobre os seus problemas no trabalho?' },
+            { id: 'q11', factor7: 'F5', factor13: 'D6', text: 'Há um clima bom entre você e os seus colegas?' },
+            { id: 'q12', factor7: 'F5', factor13: 'D6', text: 'Você se sente como parte de uma comunidade no seu local de trabalho?' },
+            { id: 'q13', factor7: 'F6', factor13: 'D7', text: 'A gerência do seu trabalho o(a) respeita?' },
+            { id: 'q14', factor7: 'F6', factor13: 'D7', text: 'Você é tratado(a) de maneira justa no seu local de trabalho?' },
+            { id: 'q15', factor7: 'F6', factor13: 'D8', text: 'Os empregados confiam uns nos outros, no geral?' },
+            { id: 'q16', factor7: 'F7', factor13: 'D9', text: 'Você se preocupa com que novas tecnologias o tornem dispensável?' },
+            { id: 'q17', factor7: 'F7', factor13: 'D9', text: 'Você se preocupa em ser transferido(a) para outro emprego contra a sua vontade?' },
+            { id: 'q18', factor7: 'F7', factor13: 'D9', text: 'Você se preocupa com que o cronograma seja alterado (turno, dias de semana, horário de entrada e saída...) contra a sua vontade?' },
+            { id: 'q19', factor7: 'F7', factor13: 'D9', text: 'Você se preocupa com que as suas tarefas de trabalho sejam alteradas contra a sua vontade?' },
+            { id: 'q20', factor7: 'F1', factor13: 'D10', text: 'Em relação ao seu trabalho em geral, quão satisfeito(a) você está com as suas perspectivas de trabalho?' },
+            { id: 'q21', factor7: 'F1', factor13: 'D10', text: 'Em relação ao seu trabalho em geral, quão satisfeito(a) você está com as condições físicas do trabalho?' },
+            { id: 'q22', factor7: 'F1', factor13: 'D10', text: 'Em relação ao seu trabalho em geral, quão satisfeito(a) você está com o modo como as suas habilidades são usadas?' },
+            { id: 'q23', factor7: 'F1', factor13: 'D10', text: 'Em relação ao seu trabalho em geral, quão satisfeito(a) você está com o seu emprego como um todo, levando tudo em conta?' },
+            { id: 'q24', factor7: 'F3', factor13: 'D11', text: 'Há vezes em que você precisa estar tanto em casa como no trabalho ao mesmo tempo?' },
+            { id: 'q25', factor7: 'F3', factor13: 'D11', text: 'Você sente que o seu trabalho tira tanto a sua ENERGIA que surte um efeito negativo na sua vida privada?' },
+            { id: 'q26', factor7: 'F3', factor13: 'D11', text: 'As exigências do meu trabalho interferem com a minha vida privada e familiar.' },
+            { id: 'q27', factor7: 'F3', factor13: 'D11', text: 'Você sente que o seu trabalho consome tanto do seu TEMPO que surte um efeito negativo na sua vida privada?' },
+            { id: 'q28', factor7: 'F2', factor13: 'D12', text: 'Em geral, você diria que a sua saúde é: (1: Ruim a 5: Excelente)' },
+            { id: 'q29', factor7: 'F2', factor13: 'D12', text: 'Nas últimas 4 semanas: com que frequência você vem tendo palpitações?' },
+            { id: 'q30', factor7: 'F2', factor13: 'D12', text: 'Nas últimas 4 semanas: com que frequência você tem achado difícil pensar claramente?' },
+            { id: 'q31', factor7: 'F2', factor13: 'D13', text: 'Nas últimas 4 semanas: com que frequência você vem se sentindo triste?' },
+            { id: 'q32', factor7: 'F2', factor13: 'D13', text: 'Nas últimas 4 semanas: com que frequência você vem experimentando falta de autoconfiança?' },
+            { id: 'q33', factor7: 'F2', factor13: 'D13', text: 'Nas últimas 4 semanas: com que frequência você vem sentindo a consciência pesada ou culpa?' }
+        ];
+
+        // ---- STREAMING_CHUNK:Initializing user interface elements ----
+        async function init() {
+            if (isFirebaseConfigured) {
+                try {
+                    await signInAnonymously(auth);
+                } catch (err) {
+                    console.error("Auth Error:", err);
+                }
+            }
+            buildQuestionnaireUI();
+            buildStatsDropdowns();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('app-toast');
+            const msgEl = document.getElementById('toast-msg');
+            if (!toast || !msgEl) return;
+            msgEl.innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3500);
+        }
+
+        function buildQuestionnaireUI() {
+            const container = document.getElementById('questions-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            questions.forEach((q, idx) => {
+                const block = document.createElement('div');
+                block.className = 'q-block bg-white p-6 rounded-2xl border-2 border-slate-100 shadow-sm hover:border-blue-300 transition-colors duration-300';
+                block.id = `qblock-${q.id}`;
+                
+                let radiosHTML = `<div class="mt-5 grid grid-cols-5 gap-2 sm:gap-4">`;
+                for (let i = 1; i <= 5; i++) {
+                    radiosHTML += `
+                        <label class="likert-wrapper relative cursor-pointer group text-center flex flex-col items-center">
+                            <input type="radio" name="${q.id}" value="${i}" class="likert-radio absolute opacity-0 w-0 h-0" onchange="clearError('${q.id}')">
+                            <div class="w-full h-12 sm:h-14 flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-700 font-bold text-lg sm:text-xl transition-all bg-white">
+                                ${i}
+                            </div>
+                        </label>
+                    `;
+                }
+                radiosHTML += `</div>`;
+
+                block.innerHTML = `
+                    <h3 class="font-semibold text-slate-800 text-lg leading-snug"><span class="text-blue-600 font-black mr-2">${idx + 1}.</span> ${q.text}</h3>
+                    ${radiosHTML}
+                `;
+                container.appendChild(block);
+            });
+        }
+        
+        function buildStatsDropdowns() {
+            const group = document.getElementById('opt-questions');
+            if (!group) return;
+            group.innerHTML = '';
+            questions.forEach((q, idx) => {
+                const opt = document.createElement('option');
+                opt.value = q.id;
+                opt.innerText = `Q${idx+1}: ${q.text.substring(0,40)}...`;
+                group.appendChild(opt);
+            });
+        }
+
+        // ---- STREAMING_CHUNK:Handling step navigation and assessment submission ----
+        window.clearError = function(qId) {
+            const block = document.getElementById(`qblock-${qId}`);
+            if (block) {
+                block.classList.remove('border-rose-400', 'bg-rose-50');
+                block.classList.add('border-slate-100', 'bg-white');
+            }
+        };
+
+        window.goToStep = function(targetStep) {
+            if (targetStep === 2) {
+                const form1 = document.getElementById('form-demographics');
+                if (!form1.checkValidity()) {
+                    document.getElementById('error-step1').classList.remove('hidden');
+                    form1.reportValidity();
+                    return;
+                }
+                document.getElementById('error-step1').classList.add('hidden');
+            }
+
+            document.querySelectorAll('.step-container').forEach(el => el.classList.add('step-hidden'));
+            const targetEl = document.getElementById(`step-${targetStep}`);
+            if (targetEl) targetEl.classList.remove('step-hidden');
+            
+            const progressBar = document.getElementById('progress-bar');
+            if(targetStep <= 3 && progressBar) {
+                progressBar.classList.remove('hidden');
+                const titles = ['Passo 1: Identificação', 'Passo 2: Questionário', 'Passo 3: Resultados'];
+                document.getElementById('step-title').innerText = titles[targetStep-1];
+                
+                for(let i=1; i<=3; i++) {
+                    const dot = document.getElementById(`dot-${i}`);
+                    if (dot) {
+                        if (i <= targetStep) {
+                            dot.classList.replace('bg-slate-300', 'bg-blue-600');
+                        } else {
+                            dot.classList.replace('bg-blue-600', 'bg-slate-300');
+                        }
+                    }
+                }
+            } else if (progressBar) {
+                progressBar.classList.add('hidden');
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.submitAssessment = async function() {
+            const errorDiv = document.getElementById('error-step2');
+            let allAnswered = true;
+            const answers = {};
+            
+            questions.forEach(q => {
+                const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+                const block = document.getElementById(`qblock-${q.id}`);
+                if (!selected) {
+                    allAnswered = false;
+                    if (block) {
+                        block.classList.remove('border-slate-100', 'bg-white');
+                        block.classList.add('border-rose-400', 'bg-rose-50');
+                    }
+                } else {
+                    let val = parseInt(selected.value);
+                    answers[q.id] = val;
+                    window.clearError(q.id);
+                }
+            });
+
+            if (!allAnswered) {
+                errorDiv.classList.remove('hidden');
+                const firstErr = document.querySelector('.border-rose-400');
+                if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            errorDiv.classList.add('hidden');
+
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            document.getElementById('btn-submit-text').classList.add('hidden');
+            document.getElementById('btn-submit-spinner').classList.remove('hidden');
+
+            const demographics = {
+                role: document.getElementById('demo-role').value,
+                age: document.getElementById('demo-age').value,
+                tenure: document.getElementById('demo-tenure').value,
+                sector: document.getElementById('demo-sector').value
+            };
+
+            // Calculation Logic for BOTH models
+            const scoresData7 = {};
+            const scoresData13 = {};
+            
+            Object.keys(factors7).forEach(k => scoresData7[k] = { sum: 0, count: 0 });
+            Object.keys(factors13).forEach(k => scoresData13[k] = { sum: 0, count: 0 });
+
+            questions.forEach(q => {
+                let val = answers[q.id];
+                // Inversão metodológica de Q28: 1=Ruim, 5=Excelente.
+                // Como F2 e D12 são fatores de RISCO (quanto maior o escore, mais doente/estressado),
+                // uma saúde 'Excelente' (5) deve pontuar 1 (sem risco) e 'Ruim' (1) deve pontuar 5 (alto risco).
+                let scoredVal = (q.id === 'q28') ? (6 - val) : val;
+
+                scoresData7[q.factor7].sum += scoredVal;
+                scoresData7[q.factor7].count += 1;
+                
+                scoresData13[q.factor13].sum += scoredVal;
+                scoresData13[q.factor13].count += 1;
+            });
+
+            const results7 = {};
+            Object.keys(factors7).forEach(k => {
+                const avg = scoresData7[k].count > 0 ? (scoresData7[k].sum / scoresData7[k].count) : 0;
+                results7[k] = { name: factors7[k].name, type: factors7[k].type, score: parseFloat(avg.toFixed(2)) };
+            });
+
+            const results13 = {};
+            Object.keys(factors13).forEach(k => {
+                const avg = scoresData13[k].count > 0 ? (scoresData13[k].sum / scoresData13[k].count) : 0;
+                results13[k] = { name: factors13[k].name, type: factors13[k].type, score: parseFloat(avg.toFixed(2)) };
+            });
+
+            // Save to Firestore
+            if (isFirebaseConfigured) {
+                try {
+                    if (!auth.currentUser) {
+                        await signInAnonymously(auth);
+                    }
+                    if (auth.currentUser) {
+                        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'copsoq_responses');
+                        await addDoc(colRef, {
+                            userId: auth.currentUser.uid,
+                            demographics: demographics,
+                            results7: results7,
+                            results13: results13,
+                            rawAnswers: answers,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                } catch (e) {
+                    console.error("Failed to save response:", e);
+                }
+            }
+
+            renderDashboard(results7, results13);
+            
+            btn.disabled = false;
+            document.getElementById('btn-submit-text').classList.remove('hidden');
+            document.getElementById('btn-submit-spinner').classList.add('hidden');
+            goToStep(3);
+        };
+
+        // ---- STREAMING_CHUNK:Rendering score cards for respondent dashboard ----
+        function getScoreTheme(score, type) {
+            let colorTheme, statusLabel;
+            if (type === 'risk') {
+                if (score < 2.33) { colorTheme = 'green'; statusLabel = 'Baixo Risco'; }
+                else if (score <= 3.66) { colorTheme = 'yellow'; statusLabel = 'Atenção'; }
+                else { colorTheme = 'red'; statusLabel = 'Alto Risco'; }
+            } else {
+                if (score > 3.66) { colorTheme = 'green'; statusLabel = 'Alta Proteção'; }
+                else if (score >= 2.33) { colorTheme = 'yellow'; statusLabel = 'Atenção'; }
+                else { colorTheme = 'red'; statusLabel = 'Baixa Proteção'; }
+            }
+            return { colorTheme, statusLabel };
+        }
+
+        function createCardHTML(key, r, typeLabel, normObj) {
+            const { colorTheme, statusLabel } = getScoreTheme(r.score, r.type);
+            const themes = {
+                'green': 'bg-emerald-50 border-emerald-200 text-emerald-800',
+                'yellow': 'bg-amber-50 border-amber-200 text-amber-800',
+                'red': 'bg-rose-50 border-rose-200 text-rose-800'
+            };
+            const badgeThemes = {
+                'green': 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                'yellow': 'bg-amber-100 text-amber-800 border-amber-300',
+                'red': 'bg-rose-100 text-rose-800 border-rose-300'
+            };
+            const norm = normObj[key] || { mean: '-', sd: '-' };
+
+            return `
+                <div class="rounded-2xl border-2 ${themes[colorTheme]} p-4 sm:p-6 relative flex flex-col justify-between h-full">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1 block">${typeLabel}</span>
+                        <h3 class="text-sm sm:text-base font-bold pr-2 leading-tight mb-3">${r.name}</h3>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-end mt-2">
+                            <div class="flex items-baseline">
+                                <span class="text-2xl sm:text-3xl font-black tracking-tight">${r.score.toFixed(1)}</span>
+                                <span class="text-xs font-bold opacity-60 ml-1">/ 5</span>
+                            </div>
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg text-[10px] sm:text-xs font-bold ${badgeThemes[colorTheme]} border shadow-sm">
+                                ${statusLabel}
+                            </span>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-current flex justify-between items-center text-[10px] sm:text-xs font-medium opacity-60">
+                            <span>Ref. Normativa Brasileira:</span>
+                            <span>Média: ${norm.mean} | DP: ${norm.sd}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDashboard(results7, results13) {
+            const grid7 = document.getElementById('results-grid-7');
+            if (grid7) {
+                grid7.innerHTML = '';
+                Object.keys(results7).forEach(k => {
+                    grid7.innerHTML += createCardHTML(k, results7[k], results7[k].type === 'risk' ? 'Fator de Risco' : 'Fator Protetor', normatives7);
+                });
+            }
+
+            const grid13 = document.getElementById('results-grid-13');
+            if (grid13) {
+                grid13.innerHTML = '';
+                Object.keys(results13).forEach(k => {
+                    grid13.innerHTML += createCardHTML(k, results13[k], results13[k].type === 'risk' ? 'Risco Detalhado' : 'Proteção Detalhada', normatives13);
+                });
+            }
+        }
+
+        // ---- STREAMING_CHUNK:Executing admin authentication and data loading ----
+        window.checkAdmin = function() {
+            const pwd = document.getElementById('admin-pwd').value;
+            if(pwd === 'gestor2026') {
+                goToStep('admin');
+                loadAdminData();
+            } else {
+                document.getElementById('admin-pwd').value = '';
+                document.getElementById('admin-pwd').placeholder = 'Senha incorreta';
+                document.getElementById('admin-pwd').classList.add('border-rose-500');
+            }
+        };
+
+        async function loadAdminData() {
+            const tbody = document.getElementById('admin-tbody');
+            const loading = document.getElementById('admin-loading');
+            
+            if (tbody) tbody.innerHTML = '';
+            exportDataArray = []; 
+            window.globalDocsData = [];
+
+            if (!isFirebaseConfigured) return;
+            
+            try {
+                if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'copsoq_responses');
+                const querySnapshot = await getDocs(colRef);
+                
+                if(querySnapshot.empty) {
+                    if (loading) loading.classList.add('hidden');
+                    const emptyEl = document.getElementById('admin-empty');
+                    if (emptyEl) emptyEl.classList.remove('hidden');
+                    return;
+                }
+
+                querySnapshot.forEach(doc => window.globalDocsData.push(doc.data()));
+                window.globalDocsData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                const factorSums7 = { 'F1':0, 'F2':0, 'F3':0, 'F4':0, 'F5':0, 'F6':0, 'F7':0 };
+                const factorSums13 = { 'D1':0, 'D2':0, 'D3':0, 'D4':0, 'D5':0, 'D6':0, 'D7':0, 'D8':0, 'D9':0, 'D10':0, 'D11':0, 'D12':0, 'D13':0 };
+
+                let totalResponses = window.globalDocsData.length;
+
+                window.globalDocsData.forEach(data => {
+                    const fullDate = new Date(data.timestamp);
+                    const date = fullDate.toLocaleDateString('pt-BR');
+                    const d = data.demographics || { role: '-', age: '-', tenure: '-', sector: '-' };
+                    const raw = data.rawAnswers || {};
+
+                    // Recalcula scores de forma padronizada caso haja respostas brutas
+                    let r7 = data.results7 || {};
+                    let r13 = data.results13 || {};
+
+                    if (raw && Object.keys(raw).length > 0) {
+                        const s7 = {};
+                        const s13 = {};
+                        Object.keys(factors7).forEach(k => s7[k] = { sum: 0, count: 0 });
+                        Object.keys(factors13).forEach(k => s13[k] = { sum: 0, count: 0 });
+
+                        questions.forEach(q => {
+                            if (raw[q.id] !== undefined) {
+                                let v = raw[q.id];
+                                let scoredV = (q.id === 'q28') ? (6 - v) : v;
+                                s7[q.factor7].sum += scoredV;
+                                s7[q.factor7].count += 1;
+                                s13[q.factor13].sum += scoredV;
+                                s13[q.factor13].count += 1;
+                            }
+                        });
+
+                        r7 = {};
+                        Object.keys(factors7).forEach(k => {
+                            let avgVal = s7[k].count > 0 ? (s7[k].sum / s7[k].count) : (data.results7 && data.results7[k] ? data.results7[k].score : 0);
+                            r7[k] = { score: parseFloat(avgVal.toFixed(2)), type: factors7[k].type, name: factors7[k].name };
+                        });
+
+                        r13 = {};
+                        Object.keys(factors13).forEach(k => {
+                            let avgVal = s13[k].count > 0 ? (s13[k].sum / s13[k].count) : (data.results13 && data.results13[k] ? data.results13[k].score : 0);
+                            r13[k] = { score: parseFloat(avgVal.toFixed(2)), type: factors13[k].type, name: factors13[k].name };
+                        });
+                    }
+
+                    Object.keys(factors7).forEach(key => {
+                        if(r7 && r7[key]) factorSums7[key] += r7[key].score;
+                    });
+
+                    Object.keys(factors13).forEach(key => {
+                        if(r13 && r13[key]) factorSums13[key] += r13[key].score;
+                    });
+
+                    // Excel Row
+                    let excelRow = {
+                        "Data_Hora": fullDate.toLocaleString('pt-BR'),
+                        "Cargo_Vinculo": d.role,
+                        "Idade": d.age,
+                        "Tempo_Servico": d.tenure,
+                        "Setor": d.sector
+                    };
+                    
+                    Object.keys(factors7).forEach(k => excelRow[`Média_${k}`] = r7[k] ? r7[k].score : '-');
+                    Object.keys(factors13).forEach(k => excelRow[`Detalhe_${k}`] = r13[k] ? r13[k].score : '-');
+                    
+                    questions.forEach((q, idx) => {
+                        excelRow[`Q${idx+1}`] = raw[q.id] || '-';
+                    });
+                    
+                    exportDataArray.push(excelRow);
+                    
+                    // Table Rows
+                    const getScoreHTML = (fKey) => {
+                        if(!r7 || !r7[fKey]) return '-';
+                        const score = r7[fKey].score;
+                        const { colorTheme } = getScoreTheme(score, r7[fKey].type);
+                        const c = colorTheme === 'green' ? 'text-emerald-600' : (colorTheme === 'yellow' ? 'text-amber-600 font-bold' : 'text-rose-600 font-bold');
+                        return `<span class="${c}">${score.toFixed(1)}</span>`;
+                    };
+
+                    if (tbody) {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0';
+                        tr.innerHTML = `
+                            <td class="whitespace-nowrap font-medium text-slate-900">${date}</td>
+                            <td class="whitespace-nowrap">${(d.role || '').substring(0,15)}...</td>
+                            <td class="whitespace-nowrap">${(d.sector || '').substring(0,15)}...</td>
+                            <td>${getScoreHTML('F1')}</td><td>${getScoreHTML('F2')}</td><td>${getScoreHTML('F3')}</td>
+                            <td>${getScoreHTML('F4')}</td><td>${getScoreHTML('F5')}</td><td>${getScoreHTML('F6')}</td>
+                            <td>${getScoreHTML('F7')}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+
+                // Calculation of Organizational Averages
+                const factorAverages7 = {};
+                let maxCriticalZ = -999;
+                let worstFactorKeyZ = 'F1';
+
+                let maxCriticalAbs = -999;
+                let worstFactorKeyAbs = 'F1';
+
+                Object.keys(factors7).forEach(key => {
+                    const avg = totalResponses > 0 ? (factorSums7[key] / totalResponses) : 0;
+                    factorAverages7[key] = parseFloat(avg.toFixed(2));
+                    
+                    // CRITÉRIO 1: ESCORE Z DE PREJUÍZO EM RELAÇÃO À POPULAÇÃO BRASILEIRA
+                    const norm = normatives7[key];
+                    let criticalZ = 0;
+                    if (norm && norm.sd > 0) {
+                        if (factors7[key].type === 'risk') {
+                            // Fator de Risco: quanto maior que a média da população, pior (positivo = mais estresse/conflito/insegurança)
+                            criticalZ = (factorAverages7[key] - norm.mean) / norm.sd;
+                        } else {
+                            // Fator Protetor: quanto menor que a média da população, pior (positivo = déficit de satisfação/liderança/influência)
+                            criticalZ = (norm.mean - factorAverages7[key]) / norm.sd;
+                        }
+                    }
+
+                    if (criticalZ > maxCriticalZ) {
+                        maxCriticalZ = criticalZ;
+                        worstFactorKeyZ = key;
+                    }
+
+                    // CRITÉRIO 2: SEVERIDADE ABSOLUTA INTRÍNSECA (1 a 5)
+                    let criticalAbsPct = 0;
+                    if (factors7[key].type === 'risk') {
+                        // Risco: 1 = sem risco (0%), 5 = risco extremo (100%)
+                        criticalAbsPct = ((factorAverages7[key] - 1) / 4) * 100;
+                    } else {
+                        // Proteção: 5 = proteção plena (0% déficit), 1 = desprotegido (100% déficit)
+                        criticalAbsPct = ((5 - factorAverages7[key]) / 4) * 100;
+                    }
+
+                    if (criticalAbsPct > maxCriticalAbs) {
+                        maxCriticalAbs = criticalAbsPct;
+                        worstFactorKeyAbs = key;
+                    }
+                });
+
+                const factorAverages13 = {};
+                Object.keys(factors13).forEach(key => {
+                    const avg = totalResponses > 0 ? (factorSums13[key] / totalResponses) : 0;
+                    factorAverages13[key] = parseFloat(avg.toFixed(2));
+                });
+
+                // Atualização dos cartões de KPI
+                const kpiTotalEl = document.getElementById('kpi-total');
+                if (kpiTotalEl) kpiTotalEl.innerText = totalResponses;
+
+                const kpiZEl = document.getElementById('kpi-worst-factor-z');
+                if (kpiZEl) {
+                    kpiZEl.innerText = `${factors7[worstFactorKeyZ].name} (Z: ${maxCriticalZ >= 0 ? '+' : ''}${maxCriticalZ.toFixed(2)})`;
+                }
+
+                const kpiAbsEl = document.getElementById('kpi-worst-factor-abs');
+                if (kpiAbsEl) {
+                    kpiAbsEl.innerText = `${factors7[worstFactorKeyAbs].name} (${factorAverages7[worstFactorKeyAbs].toFixed(1)}/5 · ${maxCriticalAbs.toFixed(0)}% gravidade)`;
+                }
+
+                const kpiLegacyEl = document.getElementById('kpi-worst-factor');
+                if (kpiLegacyEl) {
+                    kpiLegacyEl.innerText = `${factors7[worstFactorKeyZ].name} (Z: ${maxCriticalZ >= 0 ? '+' : ''}${maxCriticalZ.toFixed(2)})`;
+                }
+                
+                generateInsights(worstFactorKeyZ, maxCriticalZ, factorAverages7[worstFactorKeyZ], worstFactorKeyAbs, maxCriticalAbs, factorAverages7[worstFactorKeyAbs]);
+                renderChart(factorAverages7);
+                renderChart13(factorAverages13);
+                updateCrossAnalysis();
+
+                if (loading) loading.classList.add('hidden');
+                const adminAnalytics = document.getElementById('admin-analytics');
+                if (adminAnalytics) adminAnalytics.classList.remove('hidden');
+                const tableTitle = document.getElementById('table-title');
+                if (tableTitle) tableTitle.classList.remove('hidden');
+                const tableContainer = document.getElementById('admin-table-container');
+                if (tableContainer) tableContainer.classList.remove('hidden');
+                const btnExport = document.getElementById('btn-export');
+                if (btnExport) btnExport.classList.remove('hidden');
+
+            } catch (e) {
+                console.error("Error fetching admin data:", e);
+                if (loading) {
+                    loading.innerHTML = `
+                        <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-left max-w-lg mx-auto">
+                            <p class="font-bold flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Erro ao processar dados do painel:
+                            </p>
+                            <p class="text-xs mt-2 font-mono bg-white p-2.5 rounded border border-rose-200 break-words">${e.message || e}</p>
+                            <button onclick="loadAdminData()" class="mt-3 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-semibold">Tentar Novamente</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // ---- STREAMING_CHUNK:Generating management insights and actions ----
+        function generateInsights(worstKeyZ, zVal, scoreZ, worstKeyAbs, absPct, scoreAbs) {
+            const container = document.getElementById('ai-insights');
+            if (!container) return;
+            const themeZ = getScoreTheme(scoreZ, factors7[worstKeyZ].type);
+            const themeAbs = getScoreTheme(scoreAbs, factors7[worstKeyAbs].type);
+
+            function getInterventionText(key) {
+                switch(key) {
+                    case 'F1': return "A satisfação geral e perspectivas de carreira demandam alinhamento de expectativas, reconhecimento prático e melhor aproveitamento de competências.";
+                    case 'F2': return "Atenção médica/ergonômica: Índices de estresse, palpitações e queixas somáticas. Recomenda-se avaliar a organização dos tempos de trabalho, gestão de pausas e suporte preventivo à saúde mental.";
+                    case 'F3': return "O ritmo de trabalho ou a sobrecarga horária afetam o equilíbrio pessoal e familiar. Recomenda-se revisar fluxos de trabalho, repensar prazos e desestimular o acúmulo de demandas.";
+                    case 'F4': return "Baixa autonomia nas decisões diárias e pouca flexibilidade no ritmo de trabalho. Promover modelos de gestão participativa e maior liberdade sobre como planejar as tarefas.";
+                    case 'F5': return "Fragilidade no senso de comunidade e pertencimento coletivo. Fomentar cooperação mútua, integração de equipes e resgate do propósito institucional do trabalho.";
+                    case 'F6': return "Percepção de lacunas no apoio das chefias, justiça procedimental e reconhecimento. Investir em capacitação de liderança humanizada e canais claros de feedback.";
+                    case 'F7': return "Insegurança em relação a alterações de funções, turnos ou estabilidade no posto. Aumentar a previsibilidade e a transparência comunicacional da gestão.";
+                    default: return "Promover acompanhamento contínuo e planos de ação setoriais integrados.";
+                }
+            }
+
+            container.innerHTML = `
+                <div class="space-y-3">
+                    <p>
+                        <strong>1. Pior Desvio Normativo (Comparativo Nacional):</strong> O fator que mais destoa desfavoravelmente da população de trabalhadores brasileiros é 
+                        <strong class="text-indigo-700">${factors7[worstKeyZ].name}</strong> 
+                        (Média da Empresa: <span class="font-bold">${scoreZ.toFixed(2)}/5</span> vs Norma Brasileira: <span class="font-bold">${normatives7[worstKeyZ].mean}/5</span> — 
+                        <span class="font-bold text-indigo-900">Escore Z: ${zVal >= 0 ? '+' : ''}${zVal.toFixed(2)} [${themeZ.statusLabel}]</span>).
+                    </p>
+                    <p>
+                        <strong>2. Pior Nível Absoluto (Gravidade Interna):</strong> Na escala direta de 1 a 5, a dimensão com maior severidade intrínseca observada no dia a dia é 
+                        <strong class="text-rose-700">${factors7[worstKeyAbs].name}</strong> 
+                        (Média: <span class="font-bold">${scoreAbs.toFixed(2)}/5</span> — Severidade: <span class="font-bold">${absPct.toFixed(0)}% [${themeAbs.statusLabel}]</span>).
+                    </p>
+                </div>
+                <div class="mt-4 p-4 bg-white border border-blue-200 rounded-lg shadow-sm text-slate-700">
+                    <strong class="block text-slate-900 mb-1">Diretriz Prioritária de Intervenção (NR-1):</strong>
+                    <p class="mb-2"><strong>Foco Populacional (${factors7[worstKeyZ].name}):</strong> ${getInterventionText(worstKeyZ)}</p>
+                    ${worstKeyZ !== worstKeyAbs ? `<p><strong>Foco Interno (${factors7[worstKeyAbs].name}):</strong> ${getInterventionText(worstKeyAbs)}</p>` : ''}
+                </div>
+            `;
+        }
+
+        // ---- STREAMING_CHUNK:Rendering organizational charts ----
+        function renderChart(averages) {
+            const canvas = document.getElementById('factorChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const labels = Object.keys(factors7);
+            const data = labels.map(k => averages[k]);
+            const normData = labels.map(k => normatives7[k].mean);
+            
+            const bgColors = labels.map(k => {
+                const { colorTheme } = getScoreTheme(averages[k], factors7[k].type);
+                if(colorTheme === 'green') return 'rgba(16, 185, 129, 0.8)';
+                if(colorTheme === 'yellow') return 'rgba(251, 191, 36, 0.8)';
+                return 'rgba(244, 63, 94, 0.8)';
+            });
+
+            if (window.factorChartInstance) window.factorChartInstance.destroy();
+
+            window.factorChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels: labels, 
+                    datasets: [
+                        { type: 'bar', label: 'Média da Instituição', data: data, backgroundColor: bgColors, borderRadius: 4, order: 2 },
+                        { type: 'line', label: 'Média Normativa Brasileira (Rodrigues 2020)', data: normData, borderColor: '#475569', borderWidth: 2, borderDash: [5, 5], pointBackgroundColor: '#475569', fill: false, order: 1 }
+                    ] 
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } }, 
+                        tooltip: { callbacks: { title: (items) => factors7[items[0].label].name } } 
+                    },
+                    scales: { y: { beginAtZero: true, max: 5, grid: { borderDash: [4, 4] } } }
+                }
+            });
+        }
+
+        function renderChart13(averages) {
+            const canvas = document.getElementById('factorChart13');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const labels = Object.keys(factors13);
+            const data = labels.map(k => averages[k]);
+            const normData = labels.map(k => normatives13[k].mean);
+            
+            const bgColors = labels.map(k => {
+                const { colorTheme } = getScoreTheme(averages[k], factors13[k].type);
+                if(colorTheme === 'green') return 'rgba(16, 185, 129, 0.8)';
+                if(colorTheme === 'yellow') return 'rgba(251, 191, 36, 0.8)';
+                return 'rgba(244, 63, 94, 0.8)';
+            });
+
+            if (window.factorChart13Instance) window.factorChart13Instance.destroy();
+
+            window.factorChart13Instance = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels: labels, 
+                    datasets: [
+                        { type: 'bar', label: 'Média da Instituição (13 Dimensões)', data: data, backgroundColor: bgColors, borderRadius: 4, order: 2 },
+                        { type: 'line', label: 'Média Normativa de Referência', data: normData, borderColor: '#475569', borderWidth: 2, borderDash: [5, 5], pointBackgroundColor: '#475569', fill: false, order: 1 }
+                    ] 
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } }, 
+                        tooltip: { callbacks: { title: (items) => factors13[items[0].label].name } } 
+                    },
+                    scales: { y: { beginAtZero: true, max: 5, grid: { borderDash: [4, 4] } } }
+                }
+            });
+        }
+
+        // ---- STREAMING_CHUNK:Processing statistical cross-analyses ----
+        window.updateCrossAnalysis = function() {
+            if(!window.globalDocsData || window.globalDocsData.length === 0) return;
+
+            const groupEl = document.getElementById('stat-group');
+            const metricEl = document.getElementById('stat-metric');
+            if (!groupEl || !metricEl) return;
+
+            const groupByKey = groupEl.value; 
+            const metricKey = metricEl.value; 
+            
+            const groups = {};
+            window.globalDocsData.forEach(doc => {
+                const groupName = doc.demographics ? (doc.demographics[groupByKey] || 'Não Informado') : 'Não Informado';
+                let valueToSum = null;
+                
+                if (metricKey.startsWith('F')) {
+                    if(doc.results7 && doc.results7[metricKey]) valueToSum = doc.results7[metricKey].score;
+                    else if(doc.results && doc.results[metricKey]) valueToSum = doc.results[metricKey].score;
+                } else if (metricKey.startsWith('D')) {
+                    if(doc.results13 && doc.results13[metricKey]) valueToSum = doc.results13[metricKey].score;
+                } else if (metricKey.startsWith('q')) {
+                    if(doc.rawAnswers && doc.rawAnswers[metricKey]) valueToSum = doc.rawAnswers[metricKey];
+                }
+
+                if (valueToSum !== null && valueToSum !== undefined) {
+                    if (!groups[groupName]) groups[groupName] = { sum: 0, count: 0 };
+                    groups[groupName].sum += valueToSum;
+                    groups[groupName].count += 1;
+                }
+            });
+
+            const labels = [];
+            const data = [];
+            Object.keys(groups).forEach(k => {
+                labels.push(k);
+                data.push(parseFloat((groups[k].sum / groups[k].count).toFixed(2)));
+            });
+
+            const crossCanvas = document.getElementById('crossChart');
+            if (!crossCanvas) return;
+            const ctx = crossCanvas.getContext('2d');
+            if (window.crossChartInstance) window.crossChartInstance.destroy();
+
+            let isRisk = false;
+            let chartTitle = '';
+
+            if (metricKey.startsWith('F')) {
+                isRisk = factors7[metricKey] ? factors7[metricKey].type === 'risk' : false;
+                chartTitle = factors7[metricKey] ? factors7[metricKey].name : metricKey;
+            } else if (metricKey.startsWith('D')) {
+                isRisk = factors13[metricKey] ? factors13[metricKey].type === 'risk' : false;
+                chartTitle = factors13[metricKey] ? factors13[metricKey].name : metricKey;
+            } else {
+                const questionObj = questions.find(q => q.id === metricKey);
+                if(questionObj) {
+                    isRisk = factors7[questionObj.factor7] ? factors7[questionObj.factor7].type === 'risk' : false;
+                    chartTitle = questionObj.text;
+                }
+            }
+
+            window.crossChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Média (1 a 5)',
+                        data: data,
+                        backgroundColor: data.map(val => {
+                            const { colorTheme } = getScoreTheme(val, isRisk ? 'risk' : 'protective');
+                            if(colorTheme === 'green') return 'rgba(16, 185, 129, 0.8)';
+                            if(colorTheme === 'yellow') return 'rgba(251, 191, 36, 0.8)';
+                            return 'rgba(244, 63, 94, 0.8)';
+                        }),
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: `Média de: ${chartTitle}`, font: { size: 13, family: 'Inter' } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 5, grid: { borderDash: [4, 4] } },
+                        x: { ticks: { callback: function(val, index) { let label = this.getLabelForValue(val); return label.length > 15 ? label.substr(0, 15) + '...' : label; } } }
+                    }
+                }
+            });
+        };
+
+        // ---- STREAMING_CHUNK:Exporting collected dataset to spreadsheet ----
+        window.exportToExcel = function() {
+            if (exportDataArray.length === 0) {
+                showToast("Não há dados registrados para exportação.");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportDataArray);
+            
+            // Largura dinâmica das colunas
+            const wscols = [ {wch: 20}, {wch: 30}, {wch: 15}, {wch: 20}, {wch: 30} ];
+            for(let i=0; i<7; i++) wscols.push({wch: 15});
+            for(let i=0; i<13; i++) wscols.push({wch: 15});
+            for(let i=0; i<33; i++) wscols.push({wch: 5});
+            ws['!cols'] = wscols;
+
+            XLSX.utils.book_append_sheet(wb, ws, "Dados_Completos");
+            XLSX.writeFile(wb, `Dataset_COPSOQ_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showToast("Planilha Excel gerada com sucesso!");
+        };
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
